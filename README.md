@@ -60,7 +60,7 @@ The generated farm visuals are referenced from project-managed `/manus-storage/`
 
 ## Vercel deployment
 
-This repository uses Vite + Express rather than Next.js, so keep its existing build contract. In Vercel set the project root to the repository root, use the existing `pnpm build` command, and provide:
+This repository uses Vite + Express rather than Next.js. A committed `vercel.json` now makes Vercel run `pnpm install --frozen-lockfile`, run `pnpm build`, publish `dist/public`, and serve SPA routes from the built `index.html`; this prevents Vercel from exposing repository source files such as `server/_core/index.ts`. The project root in Vercel must be the repository root, not `server/`, `client/`, or `dist/`. The small `/api/health` and `/api/platform/config.js` functions are included for the deployed client/runtime.
 
 ```text
 VITE_SUPABASE_URL
