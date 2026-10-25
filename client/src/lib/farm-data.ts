@@ -11,19 +11,46 @@ export type Notification = { id: string; kind: string; title: string; body?: str
 const emptySnapshot = (error: string | null = null): FarmSnapshot => ({ cattle: [], cattleCount: null, products: [], posts: [], settings: null, milkLiters: null, milkPrice: null, configured: Boolean(supabase), error });
 
 export async function fetchFarmSnapshot(): Promise<FarmSnapshot> {
-  if (!supabase) return emptySnapshot("Connect Supabase to load live farm inventory, products, and marketplace posts.");
-  const [cattle, cattleCount, products, posts, settings, inventory] = await Promise.all([
-    supabase.from("cattle").select("*").eq("status", "available").eq("approved", true).order("created_at", { ascending: false }).limit(8),
-    supabase.from("cattle").select("id", { count: "exact", head: true }).eq("status", "available").eq("approved", true),
+  if (!supabase) return emptySnapshot("سپابیس کنیکٹ کریں تاکہ حقیقی مویشی، دودھ اور آفرز دکھائی جا سکیں۔");
+  const shared = await supabase.from("listings").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(24);
+  const [products, settings, inventory] = await Promise.all([
     supabase.from("milk_products").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(8),
-    supabase.from("marketplace_posts").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(8),
     supabase.from("farm_settings").select("*").eq("id", "public").maybeSingle(),
     supabase.from("milk_inventory").select("available_liters").eq("inventory_date", new Date().toISOString().slice(0, 10)).limit(100),
   ]);
-  const firstError = cattle.error ?? cattleCount.error ?? products.error ?? posts.error ?? settings.error ?? inventory.error;
+  const legacy = await Promise.all([
+    supabase.from("cattle").select("*").eq("status", "available").eq("approved", true).order("created_at", { ascending: false }).limit(8),
+    supabase.from("marketplace_posts").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(8),
+  ]);
+  const sharedRows = (shared.error ? [] : (shared.data ?? [])).map((row: any) => ({ ...row, id: row.id, title: row.title ?? row.name ?? "مویشی کی پیشکش", category: row.category ?? row.animal_type ?? "دیگر", asking_price_pkr: row.asking_price_pkr ?? row.price_pkr ?? row.price, price_pkr: row.price_pkr ?? row.asking_price_pkr ?? row.price, cover_image_url: row.cover_image_url ?? row.image_url, origin: row.source ?? row.origin, status: row.status }));
+  const legacyCattle = (legacy[0].data ?? []) as Cattle[];
+  const legacyPosts = (legacy[1].data ?? []) as MarketplacePost[];
+  const cattle = sharedRows.filter((row: any) => row.source === "admin" || row.origin === "admin").slice(0, 8) as Cattle[];
+  const posts = [...sharedRows.filter((row: any) => row.source === "user" || row.origin === "user"), ...legacyPosts].slice(0, 12) as MarketplacePost[];
+  const finalCattle = cattle.length ? cattle : legacyCattle;
+  const firstError = products.error ?? settings.error ?? inventory.error;
   if (firstError) return { ...emptySnapshot(firstError.message), configured: true };
-  const milkLiters = (inventory.data ?? []).reduce((sum, row) => sum + Number(row.available_liters ?? 0), 0);
-  return { cattle: (cattle.data ?? []) as Cattle[], cattleCount: cattleCount.count ?? 0, products: (products.data ?? []) as MilkProduct[], posts: (posts.data ?? []) as MarketplacePost[], settings: (settings.data ?? null) as FarmSettings | null, milkLiters, milkPrice: products.data?.[0]?.price_per_liter ?? null, configured: true, error: null };
+  return { cattle: finalCattle, cattleCount: finalCattle.length, products: (products.data ?? []) as MilkProduct[], posts, settings: (settings.data ?? null) as FarmSettings | null, milkLiters: (inventory.data ?? []).reduce((sum, row) => sum + Number(row.available_liters ?? 0), 0), milkPrice: products.data?.[0]?.price_per_liter ?? null, configured: true, error: null };
+}
+
+export async function submitAdminContactRequest(input: Record<string, unknown>, files: File[] = []) {
+  if (!supabase) throw new Error("سپابیس ابھی کنفیگر نہیں ہے۔");
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error("درخواست بھیجنے کے لیے پہلے لاگ اِن کریں۔");
+  const whatsapp = input.whatsapp ? normalizeWhatsApp(String(input.whatsapp)) : null;
+  if (input.whatsapp && !whatsapp) throw new Error("درست پاکستانی WhatsApp نمبر درج کریں۔");
+  const { data, error } = await supabase.from("admin_contact_requests").insert({ ...input, user_id: auth.user.id, whatsapp_number: whatsapp, status: "pending" }).select().single();
+  if (error) throw error;
+  for (const file of files.slice(0, 8)) {
+    if (!(file.type.startsWith("image/") || file.type.startsWith("video/"))) throw new Error("صرف تصویر یا ویڈیو فائل قابلِ قبول ہے۔");
+    if (file.size > 10 * 1024 * 1024) throw new Error("ہر فائل 10 MB سے کم ہونی چاہیے۔");
+    const path = `${auth.user.id}/admin-requests/${data.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const upload = await supabase.storage.from("marketplace-media").upload(path, file, { contentType: file.type });
+    if (upload.error) throw upload.error;
+    const media = await supabase.from("admin_request_media").insert({ request_id: data.id, storage_path: path, media_type: file.type.startsWith("video/") ? "video" : "image" });
+    if (media.error) throw media.error;
+  }
+  return data;
 }
 
 export async function createMarketplacePost(input: Record<string, unknown>, files: File[] = []) {
@@ -72,6 +99,6 @@ export async function fetchFavoriteIds(userId: string) { if (!supabase) return [
 export async function toggleFavorite(userId: string, postId: string, active: boolean) { if (!supabase) throw new Error("Supabase is not configured yet."); const result = active ? await supabase.from("favorites").delete().eq("user_id", userId).eq("post_id", postId) : await supabase.from("favorites").insert({ user_id: userId, post_id: postId }); if (result.error) throw result.error; }
 export async function startConversation(userId: string, sellerId: string, listingId: string) { if (!supabase) throw new Error("Supabase is not configured yet."); const conversation = await supabase.from("conversations").insert({ listing_id: listingId }).select().single(); if (conversation.error) throw conversation.error; const owner = await supabase.from("conversation_participants").insert({ conversation_id: conversation.data.id, user_id: userId }); if (owner.error) throw owner.error; const seller = await supabase.from("conversation_participants").insert({ conversation_id: conversation.data.id, user_id: sellerId }); if (seller.error) throw seller.error; return conversation.data.id as string; }
 export async function fetchConversations() { if (!supabase) return []; const { data, error } = await supabase.from("conversations").select("id,listing_id,created_at,updated_at").order("updated_at", { ascending: false }); if (error) throw error; return data ?? []; }
-export async function fetchMessages(conversationId: string) { if (!supabase) return []; const { data, error } = await supabase.from("messages").select("id,conversation_id,sender_id,body,voice_path,created_at,read_at").eq("conversation_id", conversationId).order("created_at"); if (error) throw error; return await Promise.all((data ?? []).map(async message => { if (!message.voice_path) return message; const signed = await supabase!.storage.from("private-voice").createSignedUrl(message.voice_path, 60 * 60); return { ...message, voice_url: signed.data?.signedUrl ?? null }; })); }
+export async function fetchMessages(conversationId: string) { if (!supabase) return []; const { data, error } = await supabase.from("messages").select("id,conversation_id,sender_id,body,voice_path,created_at,read_at").eq("conversation_id", conversationId).order("created_at"); if (error) throw error; return await Promise.all((data ?? []).map(async message => { if (!message.voice_path) return message; const signed = await supabase!.storage.from("voice-messages").createSignedUrl(message.voice_path, 60 * 60); return { ...message, voice_url: signed.data?.signedUrl ?? null }; })); }
 export async function sendTextMessage(conversationId: string, senderId: string, body: string) { if (!supabase) throw new Error("Supabase is not configured yet."); const { error } = await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: senderId, body: body.trim() }); if (error) throw error; }
-export async function uploadVoiceMessage(conversationId: string, senderId: string, blob: Blob) { if (!supabase) throw new Error("Supabase is not configured yet."); const path = `${senderId}/${conversationId}/${crypto.randomUUID()}.webm`; const uploaded = await supabase.storage.from("private-voice").upload(path, blob, { contentType: blob.type || "audio/webm" }); if (uploaded.error) throw uploaded.error; const { error } = await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: senderId, voice_path: path }); if (error) throw error; }
+export async function uploadVoiceMessage(conversationId: string, senderId: string, blob: Blob) { if (!supabase) throw new Error("Supabase is not configured yet."); const path = `${senderId}/${conversationId}/${crypto.randomUUID()}.webm`; const uploaded = await supabase.storage.from("voice-messages").upload(path, blob, { contentType: blob.type || "audio/webm" }); if (uploaded.error) throw uploaded.error; const { error } = await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: senderId, voice_path: path }); if (error) throw error; }

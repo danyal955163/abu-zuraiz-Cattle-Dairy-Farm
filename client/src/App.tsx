@@ -5,12 +5,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { FarmLayout } from "./components/FarmLayout";
 import Home from "./pages/Home";
- import { AboutPage, AccountPage, CattlePage, ContactPage, CreatePostPage, DairyPage, DeliveryPage, FarmPage, InfoPage, MarketplacePage, MilkPage, NotificationsPage, OrderPage, PostDetailsPage, MessagesPage, FavoritesPage } from "./pages/SitePages";
+ import { AboutPage, AccountPage, CattlePage, ContactPage, CreatePostPage, DairyPage, DeliveryPage, FarmPage, InfoPage, MarketplacePage, MilkPage, NotificationsPage, OrderPage, PostDetailsPage, MessagesPage, FavoritesPage, AvailableItemsPage, UrduMarketPage, AdminContactPage } from "./pages/SitePages";
 import NotFound from "./pages/NotFound";
 
 function Router() {
   return <FarmLayout><Switch>
-    <Route path="/" component={Home} /><Route path="/farm" component={FarmPage} /><Route path="/cattle" component={CattlePage} />
+    <Route path="/" component={Home} /><Route path="/farm" component={FarmPage} /><Route path="/cattle" component={CattlePage} /><Route path="/available" component={AvailableItemsPage} /><Route path="/market" component={UrduMarketPage} /><Route path="/admin-contact" component={AdminContactPage} />
     <Route path="/milk" component={MilkPage} /><Route path="/dairy" component={DairyPage} /><Route path="/marketplace" component={MarketplacePage} />
     <Route path="/marketplace/new" component={CreatePostPage} /><Route path="/marketplace/:id" component={PostDetailsPage} />
     <Route path="/order" component={OrderPage} /><Route path="/delivery" component={DeliveryPage} /><Route path="/notifications" component={NotificationsPage} /><Route path="/messages" component={MessagesPage} /><Route path="/favorites" component={FavoritesPage} />
