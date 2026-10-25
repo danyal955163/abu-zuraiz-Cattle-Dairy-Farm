@@ -1,25 +1,21 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { useEffect, useState } from "react";
+import { ArrowRight, ArrowUpRight, Check, Droplets, HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
+import { Link } from "wouter";
+import { fetchFarmSnapshot, type FarmSnapshot } from "@/lib/farm-data";
+import { SetupNotice } from "@/components/FarmLayout";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const initial: FarmSnapshot = { cattle: [], cattleCount: null, products: [], posts: [], settings: null, milkLiters: null, milkPrice: null, configured: false, error: "Loading live farm data…" };
+
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const [data, setData] = useState(initial);
+  useEffect(() => { fetchFarmSnapshot().then(setData); }, []);
+  const farmName = data.settings?.farm_name || "Abuzuriaz Cattle Farm";
+  return <main>
+    <section className="hero"><div className="hero-content"><p className="eyebrow" style={{ color: "#d6b983" }}><Sparkles size={15} /> Farm-fresh, thoughtfully raised</p><h1>From our fields <em>to your table.</em></h1><p className="hero-copy">Fresh milk, healthy animals, and a trusted marketplace rooted in the everyday work of a real farm.</p><div className="hero-actions"><Link href="/milk" className="btn-light">Order fresh milk <ArrowUpRight size={16} /></Link><Link href="/cattle" className="btn-outline-light">Browse the cattle zone <ArrowRight size={16} /></Link></div></div></section>
+    <section className="stats-strip"><div className="container stats-grid"><div className="stat"><strong>{data.milkLiters === null ? "—" : `${data.milkLiters} L`}</strong><span>Available milk today</span></div><div className="stat"><strong>{data.milkPrice === null ? "—" : `PKR ${data.milkPrice}`}</strong><span>Current price per liter</span></div><div className="stat"><strong>{data.cattleCount === null ? "—" : data.cattleCount}</strong><span>Animals available</span></div><div className="stat"><strong>{data.products.length || "—"}</strong><span>Milk & dairy products</span></div></div></section>
+    <SetupNotice message={data.error} />
+    <section className="section"><div className="container"><div className="section-head"><div><p className="eyebrow">A better way to buy farm-direct</p><h2>Good food starts with good care.</h2></div><p className="section-lead">{farmName} brings a quieter, more transparent way to source milk and livestock—whether you are stocking a family kitchen or growing a herd.</p></div><div className="feature-grid"><div className="feature-card image-card"><p className="eyebrow" style={{ color: "#d6b983" }}>Our farm</p><h3>Raised with patience. Delivered with pride.</h3><p>See how our farm works, what we care for, and what provenance means to every listing.</p><Link href="/farm" className="card-link">Meet the farm <ArrowUpRight size={15} /></Link></div><div className="feature-card"><p className="eyebrow">Daily ritual</p><h3>Fresh milk, on your schedule.</h3><p>Choose the milk type and quantity that fits your day. Delivery details are set by the farm team.</p><Link href="/order" className="card-link">Start an order <ArrowUpRight size={15} /></Link></div></div></div></section>
+    <section className="section-tight"><div className="container"><div className="section-head"><div><p className="eyebrow">Live listings</p><h2>Find your next healthy animal.</h2></div><Link href="/cattle" className="text-link">View cattle zone <ArrowUpRight size={15} /></Link></div>{data.cattle.length ? <div className="card-grid">{data.cattle.slice(0, 3).map(animal => <article className="data-card" key={animal.id}><div className="data-card-image" style={animal.cover_image_url ? { backgroundImage: `url(${animal.cover_image_url})` } : undefined} /><div className="data-card-body"><span className="pill">{animal.category}</span><h3>{animal.title}</h3><div className="meta">{animal.breed || "Breed to be confirmed"} · {animal.gender || "Gender not listed"}</div>{animal.price_pkr && <div className="price">PKR {animal.price_pkr.toLocaleString()}</div>}</div></article>)}</div> : <div className="empty-state"><ShieldCheck size={22} color="#b58c54" /><h3>Live animal listings will appear here.</h3><p>Connect Supabase and publish approved farm inventory to make this section live.</p><Link href="/cattle" className="text-link">Explore the cattle zone <ArrowUpRight size={15} /></Link></div>}</div></section>
+    <section className="section"><div className="container two-col"><div className="copy-block"><p className="eyebrow">Why Abuzuriaz</p><h2>Trust is part of the product.</h2><p>Every farm-owned listing is clearly identified. Every user listing goes through moderation. Every order shows its status, and private account data stays private.</p><div className="stack-form" style={{ marginTop: 28 }}><p><Check size={17} color="#b58c54" /> &nbsp; Farm and seller provenance made visible</p><p><Droplets size={17} color="#b58c54" /> &nbsp; Milk inventory checked before ordering</p><p><HeartHandshake size={17} color="#b58c54" /> &nbsp; A marketplace built around respectful trade</p></div><Link href="/about" className="btn-primary" style={{ marginTop: 12 }}>Learn about our approach <ArrowUpRight size={16} /></Link></div><div className="dairy-panel image-panel" /></div></section>
+  </main>;
 }
