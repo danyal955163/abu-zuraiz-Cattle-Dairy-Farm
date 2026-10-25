@@ -1,39 +1,26 @@
 # Abuzuriaz Cattle Farm — Delivery TODO
 
-## Public brand shell and route foundation
-- [ ] Build a responsive public website branded **Abuzuriaz Cattle Farm** with the tagline **Fresh Milk | Healthy Animals | Trusted Marketplace.** Use deep forest green, white, natural beige, and subtle gold accents; use farm imagery, custom cow-and-leaves branding, accessible controls, skeleton loaders, empty states, safe errors, rounded cards, and subtle motion.
-- [ ] Register all requested public routes and keep browsing available without sign-in: Home, Our Farm, Cattle Zone, Fresh Milk, Dairy Products, Buy & Sell Marketplace, Create Post, Post Details, Order Milk, Delivery Information, Notifications, My Orders, My Posts, About Us, Contact Us, Privacy Policy, Terms, and `/404`.
-- [ ] Serve `GET /manus-routes.json` with the complete page route set, including the dynamic post-details pattern, and keep it synchronized with source routes.
+## Delivered in the current GitHub-ready build
 
-## Supabase data foundation
-- [ ] Add additive-safe SQL migrations, indexes, relationships, constraints, timestamps, ownership fields, and RLS policies for `profiles`, `cattle`, `milk_products`, `milk_inventory`, `orders`, `order_items`, `marketplace_posts`, `marketplace_media`, `notifications`, `delivery_addresses`, `reports`, and `farm_settings`; if compatible tables already exist, extend them without destructive replacement.
-- [ ] Add secure Supabase Storage buckets and policies for livestock images, marketplace media, and farm gallery content; restrict upload type and size, keep owner/admin access enforced, and expose only approved public media.
-- [ ] Add a browser-safe Supabase client using only public URL/anon-key placeholders. Never expose service-role keys or other secrets in browser code. When Supabase is not configured, show an honest setup/empty state rather than fake live data.
+- [x] Responsive public brand shell branded **Abuzuriaz Cattle Farm** with forest green, beige, gold accents, custom cow-and-leaves favicon, farm imagery, accessible controls, empty/setup states, safe errors, and mobile/tablet/desktop layouts.
+- [x] Public browsing routes for Home, Our Farm, Cattle Zone, Fresh Milk, Dairy Products, Buy & Sell Marketplace, Create Post, Post Details, Order Milk, Delivery Information, Notifications, Messages, Saved Listings, My Account, My Orders, My Posts, About Us, Contact Us, Privacy Policy, Terms, and `/404`; `/manus-routes.json` is synchronized.
+- [x] Supabase migrations for profiles, cattle, milk products/inventory, orders/order items, delivery addresses, marketplace posts/media, notifications, reports, favorites, conversations, participants, messages, and private voice storage. RLS policies restrict private records to owners/participants and public reads to approved data.
+- [x] Browser-safe Supabase client using only `VITE_SUPABASE_URL` plus publishable/legacy anon-key placeholders. Service-role credentials are not used in browser code. Unconfigured Supabase produces honest empty/setup states rather than fake live data.
+- [x] Real Auth UI for Google OAuth, email/password sign-in and registration, email verification flow, password reset request, magic-link fallback, secure logout, and profile trigger with unique username generation.
+- [x] Home live statistics, approved cattle catalogue, milk catalogue, daily inventory aggregation, marketplace browsing, order entry, private orders/posts/notifications, account profile settings, and favorite/save flow.
+- [x] Create Post supports animal type, category, breed, breed/caste, age, gender, color, optional health/vaccination details, delivery/pickup details, PKR price, fixed/negotiable type, location, WhatsApp, phone, contact details, multiple images, optional short video, client file validation, and pending moderation status.
+- [x] Approved listing details support seller label, price type, animal details, WhatsApp `wa.me` action with prefilled listing message, private Message Seller action, favorite/save, report, and safe contact display. Private messaging supports text and browser `MediaRecorder` voice uploads when microphone access is available, with signed private audio URLs and a five-second refresh strategy.
+- [x] Atomic milk ordering RPC validates authenticated ownership, live product price, current stock, safe stock deduction, delivery address persistence, order creation, and private order notification. Cash on delivery is the only honest default payment method.
+- [x] README, `.env.example`, migrations, Vercel variable names, Supabase Auth redirect guidance, Storage/RLS notes, route manifest, and remaining manual setup documented.
+- [x] `pnpm check`, `pnpm test` (6 tests), and `pnpm build` pass; TypeScript diagnostics are registered. Build warnings are limited to runtime-managed farm image paths and the starter platform config script.
 
-## Home and farm discovery
-- [ ] Build Home with a genuine farm hero image, today's available milk in liters, current milk price per liter, current animal availability count, featured cattle categories, featured dairy products, latest approved marketplace posts, farm photo/video gallery, milk ordering entry point, and Buy & Sell entry point. Quantities, prices, inventory, counts, and posts must come from Supabase; testimonials and contact/WhatsApp/phone/location details appear only when configured by the administrator.
-- [ ] Build Our Farm, About Us, Contact Us, Delivery Information, Privacy Policy, and Terms pages. Contact details must remain unconfigured until stored in farm settings.
+## Remaining production configuration and hardening
 
-## Livestock catalogue
-- [ ] Build Cattle Zone for cows, buffaloes, goats, sheep, calves, bulls, and other livestock. Each listing must support title/category, breed, age, gender, health details, weight where available, verified daily milk yield where relevant, PKR price, Available/Reserved/Sold status, multiple photos, optional video, description, location, and contact/action buttons.
-- [ ] Add search, category filters, price range, sorting, pagination, loading states, empty states, and a clear distinction between administrator-managed farm inventory and user marketplace listings.
-
-## Milk and dairy ordering
-- [ ] Build Fresh Milk and Dairy Products pages with configurable cow milk, buffalo milk, and other milk types, configurable price per liter, daily production, available stock in liters, quantity choices such as 1/5/10/20 liters, product detail, and no hardcoded live inventory.
-- [ ] Build cart and order confirmation with delivery date, time slot, address, contact number, optional recurring delivery request, configurable payment options, and statuses Pending, Confirmed, Preparing, Out for Delivery, Delivered, and Cancelled.
-- [ ] Validate stock and deduct it atomically through a safe server-side database operation; prevent orders exceeding available inventory; keep order history private; never claim online payment success without a real provider confirmation.
-
-## Marketplace and moderation
-- [ ] Build marketplace browsing with approved posts, category/location filtering, price sorting, search, pagination, verified-farm versus user-submitted labels, and a post details page with seller contact options.
-- [ ] Build Create Post with title, category, description, asking price, location, contact details, multiple image uploads, optional video, seller identity, creation date, status, preview, upload validation/progress, and auth gating.
-- [ ] Allow only owners to edit/delete their own posts, let sellers mark a post sold, provide a report listing action, implement admin approval/moderation states, and prevent users from impersonating the farm administrator.
-
-## Auth, private records, and notifications
-- [ ] Add a secure supported Supabase identity flow for creating posts, placing orders, and accessing private user data. Anonymous visitors must not see private account data. Enforce user ownership and admin-only operations server-side and through RLS.
-- [ ] Build Notifications, My Orders, and My Posts with persisted notifications and read/unread states for new milk orders, order status changes, new marketplace posts, approval/rejection, relevant marketplace updates, and administrator announcements. Use Realtime where configured and do not claim browser push without permission/subscription/delivery infrastructure.
-- [ ] Add validation and abuse protection for public forms and uploads, safe error handling, and responsive account navigation.
-
-## Documentation and delivery
-- [ ] Add `.env.example` with placeholders only for Supabase public configuration and optional farm settings; add a README with local setup, Supabase migrations, Auth, Storage/RLS, and Vercel deployment steps, plus an honest list of remaining manual credentials/configuration.
-- [ ] Run TypeScript checks, tests, production build, route manifest checks, and focused verification of public browsing, authenticated actions, database reads/writes, RLS intent, and storage policy definitions. Resolve actionable diagnostics and runtime/build errors before checkpointing.
-- [ ] Save the completed coding to the project’s canonical repository/main checkpoint. Do not enable automatic publication or claim a Vercel URL unless the connected deployment succeeds.
+- [ ] Apply both migrations to the user's Supabase project in order, inspect the SQL in staging, enable RLS/Storage policies, and seed `farm_settings`, approved farm inventory, milk products, daily inventory, and approved media.
+- [ ] Enable Google OAuth and email/password in Supabase Auth; configure local and exact Vercel Site URL/redirect URLs; verify email verification, password reset, and Google callback behavior.
+- [ ] Create the first admin profile and build the admin moderation dashboard/API for approving, rejecting with a reason, marking sold, updating milk inventory/order status, and creating admin-owned listings. Public RLS already prevents ordinary users from changing moderation fields.
+- [ ] Complete owner edit/delete/mark-sold UI and upload progress/preview gallery management; current submission upload validates files and stores media, while the full owner lifecycle remains to be connected to admin operations.
+- [ ] Review private voice storage policy, file size/type limits, rate limiting, abuse reports/blocking controls, and signed URL expiry in a real Supabase staging project with two test users.
+- [ ] Replace placeholder Privacy Policy and Terms copy with farm-approved legal language; configure real delivery areas, contact details, WhatsApp, phone, location, and payment/delivery policy.
+- [ ] Connect the GitHub repository to the user's Vercel project, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (or documented legacy fallback), run a real production deployment, and verify health, routes, image URLs, Auth, RLS, Storage, orders, messages, and notifications end to end.
+- [ ] Do not claim a successful Vercel deployment or live payment success until those external configuration and verification steps complete.

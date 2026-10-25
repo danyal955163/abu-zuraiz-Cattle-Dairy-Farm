@@ -71,3 +71,12 @@ Milk orders will call a PostgreSQL function/RPC that locks the selected inventor
 ## Delivery workflow
 
 Run `pnpm check`, `pnpm test`, and `pnpm build`; inspect route files, the route manifest, migration syntax, and the production start path. Commit application code, migrations, docs, and `.env.example` to the project’s canonical `main` remote after integrating remote changes. Vercel deployment remains a documented manual step unless a connected GitHub/Vercel integration is available; no secret will be invented or committed.
+
+
+## Revision 2 — account, listing detail, messaging and deployment alignment
+
+The original farm marketplace shell remains the implementation base. This revision adds real Supabase Auth choices (Google OAuth, email/password, reset and magic-link fallback), automatic profile/username creation, display-name settings, richer livestock metadata, Pakistan-aware WhatsApp links, favorites, private conversations, text messages, browser-supported voice recording with private Storage and signed playback URLs, and synchronized notifications/private account views. The second migration extends the existing schema additively and keeps all public reads limited to approved records.
+
+The browser continues to use the compatible Vite variable names `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, with an explicit legacy anon-key fallback for existing projects. Vercel remains an external configuration step because no production Supabase or Vercel credentials are committed. The current build contract stays Vite + Express; no unnecessary Next.js migration is introduced into the working starter.
+
+Remaining work is intentionally documented rather than faked: an admin dashboard for moderation/order operations, full owner edit/delete/mark-sold lifecycle, real Supabase/Google/Vercel setup, legal copy, staging RLS/Storage verification, and production end-to-end checks. The project remains deployable and the current TypeScript, test, and production-build checks pass.

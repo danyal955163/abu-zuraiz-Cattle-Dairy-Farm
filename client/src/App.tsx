@@ -5,7 +5,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { FarmLayout } from "./components/FarmLayout";
 import Home from "./pages/Home";
-import { AboutPage, AccountPage, CattlePage, ContactPage, CreatePostPage, DairyPage, DeliveryPage, FarmPage, InfoPage, MarketplacePage, MilkPage, NotificationsPage, OrderPage, PostDetailsPage } from "./pages/SitePages";
+ import { AboutPage, AccountPage, CattlePage, ContactPage, CreatePostPage, DairyPage, DeliveryPage, FarmPage, InfoPage, MarketplacePage, MilkPage, NotificationsPage, OrderPage, PostDetailsPage, MessagesPage, FavoritesPage } from "./pages/SitePages";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -13,7 +13,7 @@ function Router() {
     <Route path="/" component={Home} /><Route path="/farm" component={FarmPage} /><Route path="/cattle" component={CattlePage} />
     <Route path="/milk" component={MilkPage} /><Route path="/dairy" component={DairyPage} /><Route path="/marketplace" component={MarketplacePage} />
     <Route path="/marketplace/new" component={CreatePostPage} /><Route path="/marketplace/:id" component={PostDetailsPage} />
-    <Route path="/order" component={OrderPage} /><Route path="/delivery" component={DeliveryPage} /><Route path="/notifications" component={NotificationsPage} />
+    <Route path="/order" component={OrderPage} /><Route path="/delivery" component={DeliveryPage} /><Route path="/notifications" component={NotificationsPage} /><Route path="/messages" component={MessagesPage} /><Route path="/favorites" component={FavoritesPage} />
     <Route path="/account" component={AccountPage} /><Route path="/my-orders" component={AccountPage} /><Route path="/my-posts" component={AccountPage} />
     <Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/privacy" component={() => <InfoPage title="Privacy policy" eyebrow="Your data" />} /><Route path="/terms" component={() => <InfoPage title="Terms of use" eyebrow="Clear expectations" />} />
     <Route path="/404" component={NotFound} /><Route component={NotFound} />
